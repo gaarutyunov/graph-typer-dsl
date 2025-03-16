@@ -37,7 +37,7 @@ If the job is still in queue you can check when it will be run with `mj --start`
 
 You can also check the size of the queue with `squeue`.
 
-You need to to preload the necessary modules and save them as default.
+You need to to preload the necessary modules and save them as default. More [here](https://hpc.hse.ru/instructions/base#module).
 
 ## Data Processing
 
