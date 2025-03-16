@@ -1,0 +1,1 @@
+from graph_coder.tasks.deep_similarity_learning import *  # noqa

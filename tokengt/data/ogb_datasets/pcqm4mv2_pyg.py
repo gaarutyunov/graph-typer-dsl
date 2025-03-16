@@ -5,18 +5,32 @@ Modified from https://github.com/microsoft/Graphormer
 import os
 import os.path as osp
 import shutil
-from ogb.utils import smiles2graph
-from ogb.utils.torch_util import replace_numpy_with_torchtensor
-from ogb.utils.url import decide_download, download_url, extract_zip
 import pandas as pd
+import torch.utils.data
 from tqdm import tqdm
 import torch
 
-from torch_geometric.data import InMemoryDataset
-from torch_geometric.data import Data
+
+def smiles2graph(smiles):
+    return []
+
+def decide_download(url):
+    return True
 
 
-class PygPCQM4Mv2Dataset(InMemoryDataset):
+def download_url(url, folder):
+    return ''
+
+
+def extract_zip(path, folder):
+    pass
+
+
+def replace_numpy_with_torchtensor(split_dict):
+    return split_dict
+
+
+class PygPCQM4Mv2Dataset(torch.utils.data.Dataset):
     def __init__(self, root='dataset', smiles2graph=smiles2graph, transform=None, pre_transform=None):
         """
             Pytorch Geometric PCQM4Mv2 dataset object
@@ -71,8 +85,6 @@ class PygPCQM4Mv2Dataset(InMemoryDataset):
         print('Converting SMILES strings into graphs...')
         data_list = []
         for i in tqdm(range(len(smiles_list))):
-            data = Data()
-
             smiles = smiles_list[i]
             homolumogap = homolumogap_list[i]
             graph = self.smiles2graph(smiles)
@@ -80,11 +92,13 @@ class PygPCQM4Mv2Dataset(InMemoryDataset):
             assert (len(graph['edge_feat']) == graph['edge_index'].shape[1])
             assert (len(graph['node_feat']) == graph['num_nodes'])
 
-            data.__num_nodes__ = int(graph['num_nodes'])
-            data.edge_index = torch.from_numpy(graph['edge_index']).to(torch.int64)
-            data.edge_attr = torch.from_numpy(graph['edge_feat']).to(torch.int64)
-            data.x = torch.from_numpy(graph['node_feat']).to(torch.int64)
-            data.y = torch.Tensor([homolumogap])
+            data = {
+                '__num_nodes__': int(graph['num_nodes']),
+                'edge_index': torch.from_numpy(graph['edge_index']).to(torch.int64),
+                'edge_attr': torch.from_numpy(graph['edge_feat']).to(torch.int64),
+                'x': torch.from_numpy(graph['node_feat']).to(torch.int64),
+                'y': torch.Tensor([homolumogap])
+            }
 
             data_list.append(data)
 

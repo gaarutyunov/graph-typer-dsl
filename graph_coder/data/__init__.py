@@ -1,2 +1,2 @@
-from .pldi2020_dataset import pldi2020
-from .pldi2020_small_dataset import pldi2020_small
+from .typilus_dataset import TypilusDataset  # noqa
+from .registry import build_dataset  # noqa

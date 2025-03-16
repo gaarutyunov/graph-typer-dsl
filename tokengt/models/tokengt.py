@@ -87,6 +87,8 @@ class TokenGTModel(FairseqEncoderModel):
         parser.add_argument("--prenorm", action="store_true", help="apply layernorm before self-attention and ffn")
         parser.add_argument("--postnorm", action="store_true", help="apply layernorm after self-attention and ffn")
         parser.add_argument("--return-attention", action="store_true", help="obtain attention maps from all layers",)
+        parser.add_argument("--special-tokens", action="store_true", help="use special tokens")
+        parser.add_argument("--autoencoder", action="store_true", help="autoencoder model")
 
     def max_nodes(self):
         return self.encoder.max_nodes
@@ -173,23 +175,13 @@ class TokenGTEncoder(FairseqEncoder):
         )
 
         self.share_input_output_embed = args.share_encoder_input_output_embed
-        self.embed_out = None
-        self.lm_output_learned_bias = None
+        self.embed_out = nn.Linear(args.encoder_embed_dim, args.num_classes, bias=False)
+        self.lm_output_learned_bias = nn.Parameter(torch.zeros(1))
 
-        # Remove head is set to true during fine-tuning
-        self.load_softmax = not getattr(args, "remove_head", False)
         self.masked_lm_pooler = nn.Linear(args.encoder_embed_dim, args.encoder_embed_dim)
         self.lm_head_transform_weight = nn.Linear(args.encoder_embed_dim, args.encoder_embed_dim)
         self.activation_fn = utils.get_activation_fn(args.activation_fn)
         self.layer_norm = LayerNorm(args.encoder_embed_dim)
-
-        self.lm_output_learned_bias = None
-        if self.load_softmax:
-            self.lm_output_learned_bias = nn.Parameter(torch.zeros(1))
-            if not self.share_input_output_embed:
-                self.embed_out = nn.Linear(args.encoder_embed_dim, args.num_classes, bias=False)
-            else:
-                raise NotImplementedError
 
     def reset_output_layer_parameters(self):
         self.lm_output_learned_bias = nn.Parameter(torch.zeros(1))
@@ -201,26 +193,12 @@ class TokenGTEncoder(FairseqEncoder):
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
 
-        # project masked tokens only
-        if masked_tokens is not None:
-            raise NotImplementedError
-
         x = self.layer_norm(self.activation_fn(self.lm_head_transform_weight(x)))
 
-        # project back to size of vocabulary
-        if self.share_input_output_embed and hasattr(
-                self.graph_encoder.embed_tokens, "weight"
-        ):
-            x = F.linear(x, self.graph_encoder.embed_tokens.weight)
-        elif self.embed_out is not None:
-            x = self.embed_out(x)
-        if self.lm_output_learned_bias is not None:
-            x = x + self.lm_output_learned_bias
-
         if self.return_attention:
-            return x[:, 0, :], attn_dict
+            return x, attn_dict
         else:
-            return x[:, 0, :]
+            return x
 
     def performer_finetune_setup(self):
         self.graph_encoder.performer_finetune_setup()
@@ -251,14 +229,14 @@ def base_architecture(args):
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
     args.share_encoder_input_output_embed = getattr(args, "share_encoder_input_output_embed", False)
-    args.prenorm = getattr(args, "prenorm", False)
+    args.prenorm = getattr(args, "prenorm", True)
     args.postnorm = getattr(args, "postnorm", False)
 
     args.rand_node_id = getattr(args, "rand_node_id", False)
     args.rand_node_id_dim = getattr(args, "rand_node_id_dim", 64)
     args.orf_node_id = getattr(args, "orf_node_id", False)
     args.orf_node_id_dim = getattr(args, "orf_node_id_dim", 64)
-    args.lap_node_id = getattr(args, "lap_node_id", False)
+    args.lap_node_id = getattr(args, "lap_node_id", True)
     args.lap_node_id_k = getattr(args, "lap_node_id_k", 8)
     args.lap_node_id_sign_flip = getattr(args, "lap_node_id_sign_flip", False)
     args.lap_node_id_eig_dropout = getattr(args, "lap_node_id_eig_dropout", 0.0)
@@ -273,6 +251,8 @@ def base_architecture(args):
     args.performer_generalized_attention = getattr(args, "performer_generalized_attention", False)
 
     args.return_attention = getattr(args, "return_attention", False)
+    args.special_tokens = getattr(args, "special_tokens", False)
+    args.autoencoder = getattr(args, "autoencoder", False)
 
 
 @register_model_architecture("tokengt", "tokengt_base")
@@ -289,14 +269,14 @@ def tokengt_base_architecture(args):
     args.encoder_normalize_before = getattr(args, "encoder_normalize_before", True)
     args.apply_graphormer_init = getattr(args, "apply_graphormer_init", True)
     args.share_encoder_input_output_embed = getattr(args, "share_encoder_input_output_embed", False)
-    args.prenorm = getattr(args, "prenorm", False)
+    args.prenorm = getattr(args, "prenorm", True)
     args.postnorm = getattr(args, "postnorm", False)
 
     args.rand_node_id = getattr(args, "rand_node_id", False)
     args.rand_node_id_dim = getattr(args, "rand_node_id_dim", 64)
     args.orf_node_id = getattr(args, "orf_node_id", False)
     args.orf_node_id_dim = getattr(args, "orf_node_id_dim", 64)
-    args.lap_node_id = getattr(args, "lap_node_id", False)
+    args.lap_node_id = getattr(args, "lap_node_id", True)
     args.lap_node_id_k = getattr(args, "lap_node_id_k", 8)
     args.lap_node_id_sign_flip = getattr(args, "lap_node_id_sign_flip", False)
     args.lap_node_id_eig_dropout = getattr(args, "lap_node_id_eig_dropout", 0.0)
@@ -350,4 +330,14 @@ def tokengt_base_ablated_architecture(args):
     args.performer_generalized_attention = getattr(args, "performer_generalized_attention", False)
 
     args.return_attention = getattr(args, "return_attention", False)
+    base_architecture(args)
+
+
+@register_model_architecture("tokengt", "tokengt_mini")
+def tokengt_mini_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 256)
+    args.encoder_layers = getattr(args, "encoder_layers", 1)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 4)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 256)
+    
     base_architecture(args)

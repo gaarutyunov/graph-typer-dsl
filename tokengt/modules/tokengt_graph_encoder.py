@@ -127,7 +127,6 @@ class TokenGTGraphEncoder(nn.Module):
         self.autoencoder = autoencoder
 
         if autoencoder:
-            self.autoencoder = autoencoder
             self.mask_token = nn.Embedding(1, embedding_dim)
 
         self.performer_finetune = performer_finetune

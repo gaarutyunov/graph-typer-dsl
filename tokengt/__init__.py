@@ -10,5 +10,3 @@ except:
         file=sys.stderr,
         flush=True,
     )
-
-import tokengt.criterions

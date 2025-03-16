@@ -5,10 +5,13 @@ from typing import Optional, Sequence
 import torch
 from dpu_utils.utils import RichPath
 from fairseq import utils
-from fairseq.criterions import FairseqCriterion, register_criterion
+from fairseq.criterions.fairseq_criterion import FairseqCriterion
 from fairseq.logging import metrics
 from torch import nn, Tensor
 import torch.nn.functional as F
+
+
+from fairseq import criterions
 
 
 def focal_loss(
@@ -81,7 +84,7 @@ def focal_loss(
     return loss
 
 
-@register_criterion("focal_loss")
+@criterions.register_criterion("focal_loss")
 class FocalLossCriterion(FairseqCriterion):
     def __init__(self, task, counter_path, sizes_path, gamma, ignore_index):
         super().__init__(task)
@@ -118,6 +121,7 @@ class FocalLossCriterion(FairseqCriterion):
         """
         masked_tokens = sample.get("masked_tokens", None)
         net_output = model(batched_data=sample, masked_tokens=masked_tokens)
+        net_output = model.embed_out(net_output) + model.lm_output_learned_bias
         targets = model.get_targets(sample, net_output)
         loss = focal_loss(
             net_output.view(-1, net_output.size(-1)),

@@ -19,3 +19,4 @@
 
 module restore default
 export LOG_LEVEL=debug
+source venv/bin/activate

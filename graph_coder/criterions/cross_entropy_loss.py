@@ -8,14 +8,15 @@ from typing import Optional
 
 from dpu_utils.utils import RichPath
 from fairseq import utils
-from fairseq.criterions import register_criterion, FairseqCriterion
+from fairseq.criterions.fairseq_criterion import FairseqCriterion
 from fairseq.logging import metrics
 
 import torch.nn.functional as F
 from torch import Tensor
 
+from fairseq import criterions
 
-@register_criterion("cross_entropy_loss")
+@criterions.register_criterion("cross_entropy_loss")
 class CrossEntropyLoss(FairseqCriterion):
     def __init__(self, task, counter_path, sizes_path):
         super().__init__(task)
@@ -47,6 +48,7 @@ class CrossEntropyLoss(FairseqCriterion):
         """
         masked_tokens = sample.get("masked_tokens", None)
         net_output = model(batched_data=sample, masked_tokens=masked_tokens)
+        net_output = model.encoder.embed_out(net_output) + model.encoder.lm_output_learned_bias
         if self.weights is not None:
             self.weights = self.weights.to(net_output.device)
         targets = model.get_targets(sample, net_output)

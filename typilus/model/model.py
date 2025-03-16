@@ -2,7 +2,6 @@ from collections import namedtuple
 from typing import List, Dict, Any, Iterable, Optional
 
 import numpy as np
-import tensorflow as tf
 from dpu_utils.utils import RichPath, MultiWorkerCallableIterator
 
 ModelTestResult = namedtuple("ModelTestResult", ["ground_truth", "all_predictions"])
@@ -17,17 +16,6 @@ def get_data_files_from_directory(data_dir: RichPath, max_num_files: Optional[in
         return files
     else:
         return sorted(files)[:int(max_num_files)]
-
-
-def write_to_minibatch(minibatch: Dict[tf.Tensor, Any], placeholder, val) -> None:
-    if type(val) is int:
-        minibatch[placeholder] = val
-    elif len(val) == 0:
-        ph_shape = placeholder.shape.as_list()
-        ph_shape[0] = 0
-        minibatch[placeholder] = np.empty(ph_shape)
-    else:
-        minibatch[placeholder] = np.array(val)
 
 
 def read_data_chunks(data_chunk_paths: Iterable[RichPath], shuffle_chunks: bool=False, max_queue_size: int=1, num_workers: int=0) \

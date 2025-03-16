@@ -10,12 +10,6 @@ class GraphCoderMaskedModel(TokenGTModel):
 
         return targets
 
-    @staticmethod
-    def add_args(parser):
-        TokenGTModel.add_args(parser)
-        parser.add_argument("--autoencoder", type=bool, help="Autoencoder model")
-        parser.add_argument("--special-tokens", type=bool, help="Use special tokens")
-
 
 def graph_coder_masked_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)

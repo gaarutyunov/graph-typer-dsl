@@ -4,7 +4,7 @@ import os
 import pathlib
 from typing import Union, List, Tuple, Optional, Literal, Dict, Sized, Iterable, Any
 
-import fairseq.distributed.utils
+from fairseq.distributed.utils import get_global_rank, get_global_world_size
 import numpy as np
 import torch
 from dpu_utils.utils import RichPath, ChunkWriter
@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 
 from graph_coder.data.utils import sample_to_nx, nx_to_data
 from tokengt.data import register_dataset
-from tokengt.data.collator import collator
+from .masked_collator import collator
 from tokengt.data.wrapper import preprocess_item
 from typilus.model.model import read_data_chunks
 
@@ -86,8 +86,8 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self._shuffle = False
         self._num_workers = num_workers
         self._batch_size = batch_size
-        self._rank = fairseq.distributed.utils.get_global_rank()
-        self._world_size = fairseq.distributed.utils.get_global_world_size()
+        self._rank = get_global_rank()
+        self._world_size = get_global_world_size()
 
     @property
     def raw_dir(self) -> str:

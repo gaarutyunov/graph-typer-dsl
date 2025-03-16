@@ -6,11 +6,10 @@ from fairseq.dataclass.configs import FairseqDataclass
 
 import torch
 import torch.nn as nn
-from fairseq import metrics
-from fairseq.criterions import FairseqCriterion, register_criterion
+from fairseq.logging import metrics
+from fairseq.criterions.fairseq_criterion import FairseqCriterion
 
 
-@register_criterion("l1_loss", dataclass=FairseqDataclass)
 class GraphPredictionL1Loss(FairseqCriterion):
     """
     Implementation for the L1 loss (MAE loss) used in tokengt model training.
@@ -60,7 +59,6 @@ class GraphPredictionL1Loss(FairseqCriterion):
         return True
 
 
-@register_criterion("l1_loss_with_flag", dataclass=FairseqDataclass)
 class GraphPredictionL1LossWithFlag(FairseqCriterion):
     """
     Implementation for the binary log loss used in tokengt model training.

@@ -5,9 +5,9 @@ Modified from https://github.com/microsoft/Graphormer
 from typing import Optional
 # from ogb.lsc.pcqm4mv2_pyg import PygPCQM4Mv2Dataset
 from .pcqm4mv2_pyg import PygPCQM4Mv2Dataset
-from torch_geometric.data import Dataset
 from ..pyg_datasets import TokenGTPYGDataset
 import torch.distributed as dist
+import torch.utils.data
 import os
 
 
@@ -27,7 +27,7 @@ class MyPygPCQM4Mv2Dataset(PygPCQM4Mv2Dataset):
 
 class OGBDatasetLookupTable:
     @staticmethod
-    def GetOGBDataset(dataset_name: str, seed: int) -> Optional[Dataset]:
+    def GetOGBDataset(dataset_name: str, seed: int) -> Optional[torch.utils.data.Dataset]:
         inner_dataset = None
         train_idx = None
         valid_idx = None

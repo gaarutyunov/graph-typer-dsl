@@ -2,18 +2,18 @@
 Modified from https://github.com/microsoft/Graphormer
 """
 
-from torch_geometric.data import Dataset
 from sklearn.model_selection import train_test_split
 import torch
 import numpy as np
+import torch.utils.data
 
 import copy
 
 
-class TokenGTPYGDataset(Dataset):
+class TokenGTPYGDataset(torch.utils.data.Dataset):
     def __init__(
         self,
-        dataset: Dataset,
+        dataset: torch.utils.data.Dataset,
         seed: int = 0,
         train_idx=None,
         valid_idx=None,
