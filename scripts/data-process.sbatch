@@ -38,7 +38,7 @@ while [ $# -gt 0 ]; do
         --processed-dir=*)
             PROCESSED_DIR="${1#*=}"
             ;;
-        --num-data-workers=*)
+        --num-workers=*)
             NUM_DATA_WORKERS="${1#*=}"
             ;;
         *)
