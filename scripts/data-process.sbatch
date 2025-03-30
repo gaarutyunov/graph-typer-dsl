@@ -35,13 +35,10 @@ while [ $# -gt 0 ]; do
         --max-tokens=*)
             MAX_TOKENS="${1#*=}"
             ;;
-        --num-classes=*)
-            NUM_CLASSES="${1#*=}"
-            ;;
         --processed-dir=*)
             PROCESSED_DIR="${1#*=}"
             ;;
-        --num-data-workers=*)
+        --num-workers=*)
             NUM_DATA_WORKERS="${1#*=}"
             ;;
         *)
@@ -68,7 +65,6 @@ echo "Root: $DATASET_ROOT"
 echo "Processed dir: $PROCESSED_DIR"
 echo "Split: $SPLIT"
 echo "Max tokens: $MAX_TOKENS"
-echo "Num classes: $NUM_CLASSES"
 echo "Num workers: $NUM_DATA_WORKERS"
 
 COMMAND="PYTHONPATH=. python -m graph_coder.data \
@@ -76,8 +72,7 @@ COMMAND="PYTHONPATH=. python -m graph_coder.data \
 --processed-dir \"$PROCESSED_DIR\" \
 --split \"$SPLIT\" \
 --max-tokens \"$MAX_TOKENS\" \
---num-classes \"$NUM_CLASSES\" \
---num-data-workers \"$NUM_DATA_WORKERS\""
+--num-workers \"$NUM_DATA_WORKERS\""
 
 if [ "$DRY_RUN" = true ]; then
     echo "Command (dry run):"
