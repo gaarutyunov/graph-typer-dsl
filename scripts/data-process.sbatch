@@ -5,7 +5,7 @@
 #SBATCH --time=3-0:00               # Максимальное время выполнения
 #SBATCH --ntasks=1                   # Количество MPI процессов
 #SBATCH --nodes=1                    # Требуемое кол-во узлов
-#SBATCH --cpus-per-task=10            # Требуемое кол-во CPU
+#SBATCH --cpus-per-task=1            # Требуемое кол-во CPU
 
 # Default values
 DATASET_ROOT="~/git-py"

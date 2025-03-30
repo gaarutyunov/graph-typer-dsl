@@ -26,6 +26,15 @@ def main(args: argparse.Namespace) -> None:
     logging.info(f"Mask: {args.mask}")
     logging.info(f"Number of workers: {args.num_workers}")
 
+    if args.num_workers <= 1:
+        logging.info("Using single process")
+        for file_path in data_path.iterate_filtered_files_in_dir("chunk_*.pkl.gz"):
+            output_file_path = output_rich_path.join(f"data_chunk_{i}.pkl.gz")
+            process_file(file_path, output_file_path, args.mask, args.max_tokens, i)
+            i += 1
+
+        return
+
     with Pool(args.num_workers) as pool:
         jobs: List[ApplyResult] = []
 
